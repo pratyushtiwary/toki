@@ -50,7 +50,7 @@ func (cS *CustomStrategy) Refresh(force bool) error {
 	err = cS.authCommand.WaitTillFinished()
 
 	if err != nil {
-		return err
+		return errors.New(cS.authCommand.GetStderrBuffer().String())
 	}
 
 	cS.lastSyncTime = time.Now()

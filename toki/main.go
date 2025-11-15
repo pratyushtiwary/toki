@@ -1,10 +1,12 @@
 package toki
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/pratyushtiwary/toki/config"
+	"github.com/pratyushtiwary/toki/log"
 	"github.com/pratyushtiwary/toki/process"
 	"github.com/pratyushtiwary/toki/strategy"
 	"github.com/spf13/cobra"
@@ -30,7 +32,7 @@ func executeStep(step *config.PipelineStepConfig) {
 	for _, authCommand := range authComands {
 		authStrategy, err := strategy.NewStrategy(authCommand.StrategyName, authCommand.Params, nil)
 
-		Check(err)
+		Check(err, "StrategyCreationError")
 
 		authStrategies = append(authStrategies, authStrategy)
 	}
@@ -38,7 +40,8 @@ func executeStep(step *config.PipelineStepConfig) {
 	for idx, authStrategy := range authStrategies {
 		fmt.Printf("Running: `%s` for auth refresh\n", authComands[idx].Params.Command)
 		defer authStrategy.Cleanup()
-		authStrategy.Refresh(true)
+		err := authStrategy.Refresh(true)
+		Check(err, "AuthRefreshError")
 	}
 
 	fmt.Printf("Done with initial auth refresh, executing `%s`\n", execCommand)
@@ -46,11 +49,11 @@ func executeStep(step *config.PipelineStepConfig) {
 	// now that initial auth refresh is done, we'll start with main thread block
 	command, err := process.NewCommand(execCommand, nil)
 
-	Check(err)
+	Check(err, "MainCommandCreationError")
 
 	err = command.Run(nil)
 
-	Check(err)
+	Check(err, "MainCommandExecutionError")
 
 	defer command.Cleanup()
 
@@ -61,7 +64,7 @@ func executeStep(step *config.PipelineStepConfig) {
 	for {
 		running, err := command.IsRunning()
 
-		Check(err)
+		Check(err, "MainCommandStatusCheckError")
 
 		if !running {
 			break
@@ -71,7 +74,7 @@ func executeStep(step *config.PipelineStepConfig) {
 
 			expired, err := authStrategy.IsExpired()
 
-			Check(err)
+			Check(err, "AuthExpiryCheckError")
 
 			if expired {
 				fmt.Print("Suspending main process\n")
@@ -79,15 +82,23 @@ func executeStep(step *config.PipelineStepConfig) {
 				fmt.Print("Refreshing auth\n")
 				err := authStrategy.Refresh(false)
 
-				Check(err)
+				Check(err, "AuthRefreshError")
 				fmt.Print("Auth refreshed successfully, resuming main process\n")
 
 				command.Resume()
 			}
 		}
 
-		time.Sleep(1)
+		time.Sleep(time.Duration(1) * time.Second)
 	}
+
+	// check exit status of main process
+	if !command.GetCmd().ProcessState.Success() {
+		// stop and exit
+		errorStr := command.GetStderrBuffer().String()
+		Check(errors.New(errorStr), "MainCommandFailedError")
+	}
+	log.Info("Main process exited successfully")
 }
 
 func Run(cmd *cobra.Command, args []string) {
@@ -97,17 +108,17 @@ func Run(cmd *cobra.Command, args []string) {
 
 	pipelineFile := args[0]
 
-	fmt.Print(TokiStr)
-	fmt.Printf("Parsing file: %s\n", pipelineFile)
+	log.Info(TokiStr)
+	log.Info("Parsing file: %s\n", pipelineFile)
 
 	steps, err := config.NewPipelineConfig(pipelineFile)
 
-	Check(err)
+	Check(err, "ParsingError")
 
-	fmt.Printf("%d step(s) loaded, executing step(s) sequentially\n", len(steps))
+	log.Info("%d step(s) loaded, executing step(s) sequentially\n", len(steps))
 	for idx, step := range steps {
-		fmt.Printf("\n----------------- Executing step %d -------------------\n", idx+1)
+		log.Log("\n----------------- Executing step %d -------------------\n", idx+1)
 		executeStep(&step) // blocking method, would block the loop not until this step's command execution is finished
-		fmt.Printf("-------------------------------------------------------\n")
+		log.Log("-------------------------------------------------------\n")
 	}
 }

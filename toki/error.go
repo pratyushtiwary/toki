@@ -1,13 +1,14 @@
 package toki
 
 import (
-	"fmt"
 	"os"
+
+	"github.com/pratyushtiwary/toki/log"
 )
 
-func Check(e error) {
+func Check(e error, prefix string) {
 	if e != nil {
-		fmt.Printf("ERROR: %s\n", e.Error())
+		log.Error(prefix+": %s\n", e.Error())
 		os.Exit(1)
 	}
 }
