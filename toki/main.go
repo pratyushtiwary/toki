@@ -23,22 +23,24 @@ const TokiStr = `
 
 func executeStep(step *config.PipelineStepConfig) {
 	execCommand := step.Command
-	authComands := step.AuthCommands
+	authCommands := step.AuthCommands
 
 	fmt.Printf("Starting auth refresh before running `%s` command\n", execCommand)
 
 	var authStrategies = make([]strategy.Strategy, 0)
 
-	for _, authCommand := range authComands {
-		authStrategy, err := strategy.NewStrategy(authCommand.StrategyName, authCommand.Params, nil)
+	for idx := range authCommands {
+		authCommand := authCommands[idx]
+		authStrategy, authCommand, err := strategy.NewStrategy(authCommand.StrategyName, authCommand, nil, step.GetProjectStepConfig())
 
 		Check(err, "StrategyCreationError")
 
 		authStrategies = append(authStrategies, authStrategy)
+		authCommands[idx] = authCommand
 	}
 
 	for idx, authStrategy := range authStrategies {
-		fmt.Printf("Running: `%s` for auth refresh\n", authComands[idx].Params.Command)
+		fmt.Printf("Running: `%s` for auth refresh\n", authCommands[idx].Params.Command)
 		defer authStrategy.Cleanup()
 		err := authStrategy.Refresh(true)
 		Check(err, "AuthRefreshError")
@@ -61,7 +63,9 @@ func executeStep(step *config.PipelineStepConfig) {
 		command.GetCmd().Wait()
 	}() // this will make sure we don't create zombie process
 
+	anyExpired := false
 	for {
+		anyExpired = false
 		running, err := command.IsRunning()
 
 		Check(err, "MainCommandStatusCheckError")
@@ -71,22 +75,29 @@ func executeStep(step *config.PipelineStepConfig) {
 		}
 
 		for _, authStrategy := range authStrategies {
-
 			expired, err := authStrategy.IsExpired()
-
 			Check(err, "AuthExpiryCheckError")
 
 			if expired {
-				fmt.Print("Suspending main process\n")
-				command.Suspend()
+				anyExpired = true
+				break
+			}
+		}
+
+		if anyExpired {
+			fmt.Print("Suspending main process\n")
+			command.Suspend()
+			for _, authStrategy := range authStrategies {
 				fmt.Print("Refreshing auth\n")
 				err := authStrategy.Refresh(false)
-
 				Check(err, "AuthRefreshError")
-				fmt.Print("Auth refreshed successfully, resuming main process\n")
-
-				command.Resume()
 			}
+			fmt.Print("Auth refreshed successfully, resuming main process\n")
+			command.Resume()
+		}
+
+		if command.GetCmd().ProcessState != nil && command.GetCmd().ProcessState.Exited() {
+			break
 		}
 
 		time.Sleep(time.Duration(1) * time.Second)
@@ -106,19 +117,27 @@ func Run(cmd *cobra.Command, args []string) {
 		panic("Please provide a valid pipeline config path")
 	}
 
+	projectConfigPath, err := cmd.Flags().GetString("project-config")
+
+	Check(err, "InvalidProjectConfig")
+
 	pipelineFile := args[0]
 
 	log.Info(TokiStr)
 	log.Info("Parsing file: %s\n", pipelineFile)
 
-	steps, err := config.NewPipelineConfig(pipelineFile)
+	projectConfig, err := config.NewProjectConfig(projectConfigPath)
 
-	Check(err, "ParsingError")
+	Check(err, "ProjectConfigParsingError")
+
+	steps, err := config.NewPipelineConfig(pipelineFile, projectConfig)
+
+	Check(err, "PipelineConfigParsingError")
 
 	log.Info("%d step(s) loaded, executing step(s) sequentially\n", len(steps))
 	for idx, step := range steps {
 		log.Log("\n----------------- Executing step %d -------------------\n", idx+1)
-		executeStep(&step) // blocking method, would block the loop not until this step's command execution is finished
+		executeStep(step) // blocking method, would block the loop not until this step's command execution is finished
 		log.Log("-------------------------------------------------------\n")
 	}
 }

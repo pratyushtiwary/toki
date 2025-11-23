@@ -16,9 +16,8 @@ var rootCmd = &cobra.Command{
 	Use:   "toki",
 	Short: "Auth orchestrator",
 	Long:  "Toki is an auth orchestrator that makes it easy to run long running programs on short lived auth tokens",
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	Run: toki.Run,
+	Args:  cobra.ExactArgs(1),
+	Run:   toki.Run,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -31,5 +30,5 @@ func Execute() {
 }
 
 func init() {
-	// noop
+	rootCmd.Flags().StringP("project-config", "p", "", "Specifies location of project config")
 }

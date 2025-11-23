@@ -33,3 +33,6 @@ go.work.sum
 
 # test json
 *.test.json
+*.test.yml
+*.test.py
+test.py

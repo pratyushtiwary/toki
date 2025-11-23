@@ -5,6 +5,3 @@ type Strategy interface {
 	Refresh(bool) error
 	Cleanup() error
 }
-
-type StrategyConfig interface {
-}
