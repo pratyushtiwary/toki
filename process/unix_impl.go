@@ -28,6 +28,13 @@ func (p *Process) Run(processGroupId *uintptr) error {
 	p.cmd = cmd
 	cmd.Stdout = p.stdoutBuffer
 	cmd.Stderr = p.stderrBuffer
+	stdin, err := cmd.StdinPipe()
+
+	if err != nil {
+		return err
+	}
+
+	p.stdinWriter = &stdin
 
 	if err := cmd.Start(); err != nil {
 		return err

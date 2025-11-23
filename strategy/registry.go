@@ -6,16 +6,24 @@ import (
 	"github.com/pratyushtiwary/toki/config"
 )
 
-func NewStrategy(strategyName string, params config.PipelineAuthParamsConfig, processGroupId *uintptr) (Strategy, error) {
+func NewStrategy(strategyName string, stepConfig *config.StepAuthConfig, processGroupId *uintptr, projectStepConfig *config.ProjectStepConfig) (Strategy, *config.StepAuthConfig, error) {
 	switch strategyName {
 	case "custom":
-		config, err := NewCustomStrategyConfig(params, processGroupId)
+		err := config.ValidateCustomStrategyConfig(stepConfig, processGroupId)
 
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return NewCustomStrategy(config)
+		return NewCustomStrategy(stepConfig)
+	case "inherit":
+		err := config.ValidateInheritStrategyConfig(stepConfig)
+
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return NewInheritStrategy(stepConfig, projectStepConfig)
 	default:
-		return nil, errors.New("invalid strategy name provided: " + strategyName)
+		return nil, nil, errors.New("invalid strategy name provided: " + strategyName)
 	}
 }

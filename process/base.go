@@ -3,6 +3,7 @@ package process
 import (
 	"bytes"
 	"errors"
+	"io"
 	"os/exec"
 )
 
@@ -12,6 +13,7 @@ type ProcessBase struct {
 	cmd          *exec.Cmd
 	stdoutBuffer *bytes.Buffer
 	stderrBuffer *bytes.Buffer
+	stdinWriter  *io.WriteCloser
 }
 
 func (cB *ProcessBase) Run(processGroupId *uintptr) error {
