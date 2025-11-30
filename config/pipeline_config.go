@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/pratyushtiwary/toki/log"
@@ -93,8 +94,14 @@ func (pSC *PipelineStepConfig) MergeWithProjectConfig(projectConfig *ProjectConf
 	return nil
 }
 
-func NewPipelineConfig(filepath string, projectConfig *ProjectConfig) ([]*PipelineStepConfig, error) {
-	data, err := os.ReadFile(filepath)
+func NewPipelineConfig(pipelineConfigFilepath string, projectConfig *ProjectConfig) ([]*PipelineStepConfig, error) {
+	pipelineConfigFilepath, err := filepath.Abs(pipelineConfigFilepath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := os.ReadFile(pipelineConfigFilepath)
 
 	if err != nil {
 		return nil, err
@@ -102,7 +109,7 @@ func NewPipelineConfig(filepath string, projectConfig *ProjectConfig) ([]*Pipeli
 
 	var steps []*PipelineStepConfig
 
-	if strings.HasSuffix(filepath, "yml") || strings.HasSuffix(filepath, "yaml") {
+	if strings.HasSuffix(pipelineConfigFilepath, "yml") || strings.HasSuffix(pipelineConfigFilepath, "yaml") {
 		err = yaml.Unmarshal(data, &steps)
 	} else {
 		err = json.Unmarshal(data, &steps)

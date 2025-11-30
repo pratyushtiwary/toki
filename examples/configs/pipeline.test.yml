@@ -1,0 +1,12 @@
+- use: test
+  command: python3 test.py
+  auth:
+    - strategy: inherit
+      name: test
+- command: python3 test.py
+  auth:
+    - strategy: custom
+      params:
+        expiry: 60
+        refresh_after: 50
+        command: sleep 4 && echo 1

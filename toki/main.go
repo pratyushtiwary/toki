@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pratyushtiwary/toki/config"
 	"github.com/pratyushtiwary/toki/log"
 	"github.com/pratyushtiwary/toki/process"
+	"github.com/pratyushtiwary/toki/server"
 	"github.com/pratyushtiwary/toki/strategy"
 	"github.com/spf13/cobra"
 )
@@ -21,7 +23,7 @@ const TokiStr = `
 
 `
 
-func executeStep(step *config.PipelineStepConfig) {
+func executeStep(step *config.PipelineStepConfig, server *server.Server) {
 	execCommand := step.Command
 	authCommands := step.AuthCommands
 
@@ -50,10 +52,16 @@ func executeStep(step *config.PipelineStepConfig) {
 
 	// now that initial auth refresh is done, we'll start with main thread block
 	command, err := process.NewCommand(execCommand, nil)
-
 	Check(err, "MainCommandCreationError")
 
-	err = command.Run(nil)
+	passkey, err := uuid.NewUUID()
+	Check(err, "PasskeyGenerationError")
+	server.SetPasskey(passkey.String())
+
+	err = command.Run(nil, []string{
+		fmt.Sprintf("TOKI_PORT=%d", server.GetPort()),
+		fmt.Sprintf("TOKI_TOKEN=%s", passkey.String()),
+	})
 
 	Check(err, "MainCommandExecutionError")
 
@@ -93,6 +101,7 @@ func executeStep(step *config.PipelineStepConfig) {
 				Check(err, "AuthRefreshError")
 			}
 			fmt.Print("Auth refreshed successfully, resuming main process\n")
+			go server.Broadcast("AUTH_REFRESHED")
 			command.Resume()
 		}
 
@@ -103,9 +112,9 @@ func executeStep(step *config.PipelineStepConfig) {
 		time.Sleep(time.Duration(1) * time.Second)
 	}
 
-	// check exit status of main process
+	go server.Broadcast("FINISHED")
+
 	if !command.GetCmd().ProcessState.Success() {
-		// stop and exit
 		errorStr := command.GetStderrBuffer().String()
 		Check(errors.New(errorStr), "MainCommandFailedError")
 	}
@@ -121,6 +130,10 @@ func Run(cmd *cobra.Command, args []string) {
 
 	Check(err, "InvalidProjectConfig")
 
+	inDevMode, err := cmd.Flags().GetBool("dev")
+
+	Check(err, "DevArgError")
+
 	pipelineFile := args[0]
 
 	log.Info(TokiStr)
@@ -135,9 +148,16 @@ func Run(cmd *cobra.Command, args []string) {
 	Check(err, "PipelineConfigParsingError")
 
 	log.Info("%d step(s) loaded, executing step(s) sequentially\n", len(steps))
+
+	server := server.NewServer(3110, inDevMode)
+
+	go server.Listen()
+
+	defer server.Close()
+
 	for idx, step := range steps {
 		log.Log("\n----------------- Executing step %d -------------------\n", idx+1)
-		executeStep(step) // blocking method, would block the loop not until this step's command execution is finished
+		executeStep(step, server) // blocking method, would block the loop not until this step's command execution is finished
 		log.Log("-------------------------------------------------------\n")
 	}
 }

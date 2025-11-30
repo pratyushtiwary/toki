@@ -4,6 +4,7 @@ package process
 
 import (
 	"bytes"
+	"os"
 	"os/exec"
 	"syscall"
 )
@@ -12,8 +13,9 @@ type Process struct {
 	ProcessBase
 }
 
-func (p *Process) Run(processGroupId *uintptr) error {
+func (p *Process) Run(processGroupId *uintptr, env []string) error {
 	cmd := exec.Command("/bin/sh", "-c", p.execCommand)
+	cmd.Env = append(os.Environ(), env...)
 
 	if processGroupId != nil {
 		cmd.SysProcAttr = &syscall.SysProcAttr{
