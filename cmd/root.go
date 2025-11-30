@@ -31,4 +31,5 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().StringP("project-config", "p", "", "Specifies location of project config")
+	rootCmd.Flags().BoolP("dev", "d", false, "Run toki in development mode")
 }

@@ -31,8 +31,5 @@ go.work.sum
 # .idea/
 .vscode/
 
-# test json
-*.test.json
-*.test.yml
-*.test.py
-test.py
+# python
+*.pyc

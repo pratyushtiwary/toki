@@ -35,7 +35,7 @@ func (cS *CustomStrategy) Refresh(force bool) error {
 		return nil
 	}
 
-	err = cS.authCommand.Run(cS.processGroupId)
+	err = cS.authCommand.Run(cS.processGroupId, []string{})
 	if err != nil {
 		return err
 	}

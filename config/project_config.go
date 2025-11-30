@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -89,12 +90,18 @@ func (pC *ProjectStepConfig) ValidateProjectStepConfig() error {
 	return nil
 }
 
-func NewProjectConfig(filepath string) (*ProjectConfig, error) {
-	if len(filepath) == 0 {
+func NewProjectConfig(projectConfigFilepath string) (*ProjectConfig, error) {
+	if len(projectConfigFilepath) == 0 {
 		return nil, nil
 	}
 
-	data, err := os.ReadFile(filepath)
+	projectConfigFilepath, err := filepath.Abs(projectConfigFilepath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := os.ReadFile(projectConfigFilepath)
 
 	if err != nil {
 		return nil, err
@@ -102,7 +109,7 @@ func NewProjectConfig(filepath string) (*ProjectConfig, error) {
 
 	var steps []ProjectStepConfig
 
-	if strings.HasSuffix(filepath, "yml") || strings.HasSuffix(filepath, "yaml") {
+	if strings.HasSuffix(projectConfigFilepath, "yml") || strings.HasSuffix(projectConfigFilepath, "yaml") {
 		err = yaml.Unmarshal(data, &steps)
 	} else {
 		err = json.Unmarshal(data, &steps)

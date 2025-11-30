@@ -4,6 +4,7 @@ package process
 
 import (
 	"bytes"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -21,8 +22,9 @@ var (
 	ntResumeProcess  = ntdll.NewProc("NtResumeProcess")
 )
 
-func (p *Process) Run(processGroupId *uintptr) error {
+func (p *Process) Run(processGroupId *uintptr, env []string) error {
 	cmd := exec.Command("cmd.exe", "/C", p.execCommand)
+	cmd.Env = append(os.Environ(), env...)
 	p.cmd = cmd
 	cmd.Stdout = p.stdoutBuffer
 	cmd.Stderr = p.stderrBuffer
