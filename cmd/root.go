@@ -32,4 +32,5 @@ func Execute() {
 func init() {
 	rootCmd.Flags().StringP("project-config", "p", "", "Specifies location of project config")
 	rootCmd.Flags().BoolP("dev", "d", false, "Run toki in development mode")
+	rootCmd.Flags().BoolP("verbose", "v", false, "[WIP] Prints all the information to stdout, including stdout/stderr of all the process executed")
 }

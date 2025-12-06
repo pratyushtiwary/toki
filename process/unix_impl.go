@@ -97,7 +97,7 @@ func (p *Process) Cleanup() error {
 	return nil
 }
 
-func NewCommand(execCommand string, parentProcessGroup *uintptr) (*Process, error) {
+func newCommand(execCommand string, parentProcessGroup *uintptr) (ProcessInterface, error) {
 	base := ProcessBase{
 		execCommand:  execCommand,
 		stdoutBuffer: &bytes.Buffer{},
@@ -110,3 +110,5 @@ func NewCommand(execCommand string, parentProcessGroup *uintptr) (*Process, erro
 
 	return &Process{ProcessBase: base}, nil
 }
+
+var NewCommand = newCommand

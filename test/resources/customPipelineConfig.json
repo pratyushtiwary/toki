@@ -1,0 +1,15 @@
+[
+  {
+    "command": "echo 1",
+    "auth": [
+      {
+        "strategy": "custom",
+        "params": {
+          "expiry": 2,
+          "refresh_after": 1,
+          "command": "echo 1"
+        }
+      }
+    ]
+  }
+]

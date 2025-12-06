@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/pratyushtiwary/toki/config"
+	"github.com/pratyushtiwary/toki/log"
 	"github.com/pratyushtiwary/toki/process"
 )
 
@@ -13,7 +14,7 @@ type CustomStrategy struct {
 	expiry         int
 	refreshAfter   int
 	lastSyncTime   time.Time
-	authCommand    *process.Process
+	authCommand    process.ProcessInterface
 	processGroupId *uintptr
 }
 
@@ -24,7 +25,7 @@ func (cS *CustomStrategy) IsExpired() (bool, error) {
 	return now.After(time_to_refresh) || now.Equal(time_to_refresh), nil
 }
 
-func (cS *CustomStrategy) Refresh(force bool) error {
+func (cS *CustomStrategy) Refresh(force bool, verbose bool) error {
 	expired, err := cS.IsExpired()
 
 	if err != nil {
@@ -46,6 +47,10 @@ func (cS *CustomStrategy) Refresh(force bool) error {
 	}
 
 	cS.lastSyncTime = time.Now()
+
+	if verbose {
+		log.Info("Stdout: %s", cS.authCommand.GetStdoutBuffer().String())
+	}
 
 	return nil
 }
