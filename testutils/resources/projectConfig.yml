@@ -1,0 +1,9 @@
+- name: test
+  command: echo 1
+  auth:
+    - name: test
+      strategy: custom
+      params:
+        expiry: 60
+        refresh_after: 4
+        command: echo 1

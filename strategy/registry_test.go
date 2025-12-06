@@ -3,7 +3,7 @@ package strategy
 import (
 	"testing"
 
-	"github.com/pratyushtiwary/toki/test"
+	test_config_utils "github.com/pratyushtiwary/toki/testutils/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,7 +12,7 @@ func stringPtr(s string) *string {
 }
 
 func TestRegistryCustomStrategyHappyPath(t *testing.T) {
-	customStrategyConfig, _ := test.GetFirstStep(t, "customPipelineConfig.json", nil)
+	customStrategyConfig, _ := test_config_utils.GetFirstStep(t, "customPipelineConfig.json", nil)
 	authConfig := customStrategyConfig.AuthCommands[0]
 
 	processor, config, err := NewStrategy(authConfig.StrategyName, authConfig, nil, nil)
@@ -23,7 +23,7 @@ func TestRegistryCustomStrategyHappyPath(t *testing.T) {
 }
 
 func TestRegistryCustomStrategyInvalidConfig(t *testing.T) {
-	customStrategyConfig, _ := test.GetFirstStep(t, "customPipelineConfig.json", nil)
+	customStrategyConfig, _ := test_config_utils.GetFirstStep(t, "customPipelineConfig.json", nil)
 	authConfig := customStrategyConfig.AuthCommands[0]
 
 	authConfig.Params.Command = ""
@@ -37,7 +37,7 @@ func TestRegistryCustomStrategyInvalidConfig(t *testing.T) {
 }
 
 func TestRegistryInheritStrategyHappyPath(t *testing.T) {
-	inheritStrategyConfig, projectConfig := test.GetFirstStep(
+	inheritStrategyConfig, projectConfig := test_config_utils.GetFirstStep(
 		t,
 		"inheritPipelineConfig.json",
 		stringPtr("projectConfig.json"),
@@ -55,7 +55,7 @@ func TestRegistryInheritStrategyHappyPath(t *testing.T) {
 }
 
 func TestRegistryInheritStrategyInvalidConfig(t *testing.T) {
-	inheritStrategyConfig, projectConfig := test.GetFirstStep(
+	inheritStrategyConfig, projectConfig := test_config_utils.GetFirstStep(
 		t,
 		"inheritPipelineConfig.json",
 		stringPtr("projectConfig.json"),
@@ -75,7 +75,7 @@ func TestRegistryInheritStrategyInvalidConfig(t *testing.T) {
 }
 
 func TestRegistryInvalidStrategy(t *testing.T) {
-	invalidStrategyConfig, _ := test.GetFirstStep(
+	invalidStrategyConfig, _ := test_config_utils.GetFirstStep(
 		t,
 		"unsupportedStrategyPipelineConfig.json",
 		nil,

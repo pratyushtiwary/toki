@@ -34,7 +34,7 @@ func (sAC *StepAuthConfig) IsEqual(stepAuthConfig StepAuthConfig) bool {
 	return true
 }
 
-func (pSC *PipelineStepConfig) ValidatePipelineStepConfig(projectConfig *ProjectConfig) error {
+func (pSC *PipelineStepConfig) ValidatePipelineStepConfig(projectConfig ProjectConfigInterface) error {
 
 	if len(pSC.Use) == 0 && len(pSC.Command) == 0 {
 		return errors.New("either of `use` or `command` needs to be present in the pipeline step")
@@ -61,7 +61,7 @@ func (pSC *PipelineStepConfig) ValidatePipelineStepConfig(projectConfig *Project
 	return nil
 }
 
-func (pSC *PipelineStepConfig) MergeWithProjectConfig(projectConfig *ProjectConfig) error {
+func (pSC *PipelineStepConfig) MergeWithProjectConfig(projectConfig ProjectConfigInterface) error {
 	if projectConfig == nil || len(pSC.Use) == 0 {
 		return nil
 	}
@@ -94,7 +94,7 @@ func (pSC *PipelineStepConfig) MergeWithProjectConfig(projectConfig *ProjectConf
 	return nil
 }
 
-func NewPipelineConfig(pipelineConfigFilepath string, projectConfig *ProjectConfig) ([]*PipelineStepConfig, error) {
+func NewPipelineConfig(pipelineConfigFilepath string, projectConfig ProjectConfigInterface) ([]*PipelineStepConfig, error) {
 	pipelineConfigFilepath, err := filepath.Abs(pipelineConfigFilepath)
 
 	if err != nil {

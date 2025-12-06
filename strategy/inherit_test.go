@@ -3,12 +3,12 @@ package strategy
 import (
 	"testing"
 
-	"github.com/pratyushtiwary/toki/test"
+	test_config_utils "github.com/pratyushtiwary/toki/testutils/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestInheritStrategyHappyPath(t *testing.T) {
-	inheritStrategyConfig, projectConfig := test.GetFirstStep(
+	inheritStrategyConfig, projectConfig := test_config_utils.GetFirstStep(
 		t,
 		"inheritPipelineConfig.json",
 		stringPtr("projectConfig.json"),
@@ -27,7 +27,7 @@ func TestInheritStrategyHappyPath(t *testing.T) {
 }
 
 func TestInheritStrategyWithInvalidInheritName(t *testing.T) {
-	inheritStrategyConfig, projectConfig := test.GetFirstStep(
+	inheritStrategyConfig, projectConfig := test_config_utils.GetFirstStep(
 		t,
 		"inheritPipelineConfig.json",
 		stringPtr("projectConfig.json"),
@@ -51,7 +51,7 @@ func TestInheritStrategyWithInvalidInheritName(t *testing.T) {
 }
 
 func TestInheritStrategyWithInvalidProjectStepConfig(t *testing.T) {
-	inheritStrategyConfig, projectConfig := test.GetFirstStep(
+	inheritStrategyConfig, projectConfig := test_config_utils.GetFirstStep(
 		t,
 		"inheritPipelineConfig.json",
 		stringPtr("projectConfig.json"),
