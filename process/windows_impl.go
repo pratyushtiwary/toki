@@ -147,7 +147,7 @@ func (p *Process) Cleanup() error {
 	return nil
 }
 
-func NewCommand(execCommand string, parentProcessGroup *uintptr) (*Process, error) {
+func newCommand(execCommand string, parentProcessGroup *uintptr) (ProcessInterface, error) {
 	var job windows.Handle
 	var err error
 
@@ -172,3 +172,5 @@ func NewCommand(execCommand string, parentProcessGroup *uintptr) (*Process, erro
 		ProcessBase: base,
 	}, nil
 }
+
+var NewCommand = newCommand

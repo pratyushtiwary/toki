@@ -7,7 +7,22 @@ import (
 	"os/exec"
 )
 
+type ProcessInterface interface {
+	Run(*uintptr, []string) error
+	IsRunning() (bool, error)
+	Cleanup() error
+	Suspend() error
+	Resume() error
+	WaitTillFinished() error
+	GetStdoutBuffer() *bytes.Buffer
+	GetStderrBuffer() *bytes.Buffer
+	GetCmd() *exec.Cmd
+	GetPgId() uintptr
+	GetExecCommand() string
+}
+
 type ProcessBase struct {
+	ProcessInterface
 	execCommand  string
 	pgId         uintptr // in linux and darwin process group id is int, in WINDOWS IT IS UINTPTR!!!
 	cmd          *exec.Cmd

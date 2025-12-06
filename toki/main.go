@@ -23,7 +23,7 @@ const TokiStr = `
 
 `
 
-func executeStep(step *config.PipelineStepConfig, server *server.Server) {
+func executeStep(step *config.PipelineStepConfig, server *server.Server, verbose bool) {
 	execCommand := step.Command
 	authCommands := step.AuthCommands
 
@@ -44,7 +44,7 @@ func executeStep(step *config.PipelineStepConfig, server *server.Server) {
 	for idx, authStrategy := range authStrategies {
 		fmt.Printf("Running: `%s` for auth refresh\n", authCommands[idx].Params.Command)
 		defer authStrategy.Cleanup()
-		err := authStrategy.Refresh(true)
+		err := authStrategy.Refresh(true, verbose)
 		Check(err, "AuthRefreshError")
 	}
 
@@ -97,7 +97,7 @@ func executeStep(step *config.PipelineStepConfig, server *server.Server) {
 			command.Suspend()
 			for _, authStrategy := range authStrategies {
 				fmt.Print("Refreshing auth\n")
-				err := authStrategy.Refresh(false)
+				err := authStrategy.Refresh(false, verbose)
 				Check(err, "AuthRefreshError")
 			}
 			fmt.Print("Auth refreshed successfully, resuming main process\n")
@@ -119,6 +119,9 @@ func executeStep(step *config.PipelineStepConfig, server *server.Server) {
 		Check(errors.New(errorStr), "MainCommandFailedError")
 	}
 	log.Info("Main process exited successfully")
+	if verbose {
+		log.Info("Stdout: %s", command.GetStdoutBuffer().String())
+	}
 }
 
 func Run(cmd *cobra.Command, args []string) {
@@ -126,13 +129,17 @@ func Run(cmd *cobra.Command, args []string) {
 		panic("Please provide a valid pipeline config path")
 	}
 
+	verbose, err := cmd.Flags().GetBool("verbose")
+
+	Check(err, "ArgError")
+
 	projectConfigPath, err := cmd.Flags().GetString("project-config")
 
 	Check(err, "InvalidProjectConfig")
 
 	inDevMode, err := cmd.Flags().GetBool("dev")
 
-	Check(err, "DevArgError")
+	Check(err, "ArgError")
 
 	pipelineFile := args[0]
 
@@ -157,7 +164,7 @@ func Run(cmd *cobra.Command, args []string) {
 
 	for idx, step := range steps {
 		log.Log("\n----------------- Executing step %d -------------------\n", idx+1)
-		executeStep(step, server) // blocking method, would block the loop not until this step's command execution is finished
+		executeStep(step, server, verbose) // blocking method, would block the loop not until this step's command execution is finished
 		log.Log("-------------------------------------------------------\n")
 	}
 }
