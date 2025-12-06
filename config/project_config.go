@@ -12,7 +12,20 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type ProjectConfigInterface interface {
+	AddStep(*ProjectStepConfig) error
+	GetStep(string) (*ProjectStepConfig, error)
+}
+
+type ProjectConfigStepInterface interface {
+	ensureInitialized()
+	AddAuthCommand(*StepAuthConfig) error
+	GetAuthCommand(string) (*StepAuthConfig, error)
+	ValidateProjectStepConfig() error
+}
+
 type ProjectStepConfig struct {
+	ProjectConfigStepInterface
 	StepConfig `yaml:",inline"`
 	Name       string `json:"name" yaml:"name"`
 	strategies map[string]*StepAuthConfig
@@ -20,8 +33,37 @@ type ProjectStepConfig struct {
 }
 
 type ProjectConfig struct {
+	ProjectConfigInterface
 	steps  map[string]*ProjectStepConfig
 	rwLock sync.RWMutex
+}
+
+func (pC *ProjectConfig) AddStep(step *ProjectStepConfig) error {
+	pC.rwLock.Lock()
+	defer pC.rwLock.Unlock()
+
+	pC.steps[step.Name] = step
+
+	for _, stepAuthConfig := range step.AuthCommands {
+		err := step.AddAuthCommand(stepAuthConfig)
+
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (pC *ProjectConfig) GetStep(stepName string) (*ProjectStepConfig, error) {
+	pC.rwLock.RLock()
+	defer pC.rwLock.RUnlock()
+	value, exists := pC.steps[stepName]
+
+	if !exists {
+		return nil, fmt.Errorf("`%s` step doesn't exist in project config", stepName)
+	}
+
+	return value, nil
 }
 
 func (pSC *ProjectStepConfig) ensureInitialized() {
@@ -41,22 +83,6 @@ func (pSC *ProjectStepConfig) AddAuthCommand(stepAuthConfig *StepAuthConfig) err
 	return nil
 }
 
-func (pC *ProjectConfig) AddStep(step *ProjectStepConfig) error {
-	pC.rwLock.Lock()
-	defer pC.rwLock.Unlock()
-
-	pC.steps[step.Name] = step
-
-	for _, stepAuthConfig := range step.AuthCommands {
-		err := step.AddAuthCommand(stepAuthConfig)
-
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (pSC *ProjectStepConfig) GetAuthCommand(commandName string) (*StepAuthConfig, error) {
 	pSC.rwLock.RLock()
 	defer pSC.rwLock.RUnlock()
@@ -70,18 +96,6 @@ func (pSC *ProjectStepConfig) GetAuthCommand(commandName string) (*StepAuthConfi
 	return value, nil
 }
 
-func (pC *ProjectConfig) GetStep(stepName string) (*ProjectStepConfig, error) {
-	pC.rwLock.RLock()
-	defer pC.rwLock.RUnlock()
-	value, exists := pC.steps[stepName]
-
-	if !exists {
-		return nil, fmt.Errorf("`%s` step doesn't exist in project config", stepName)
-	}
-
-	return value, nil
-}
-
 func (pC *ProjectStepConfig) ValidateProjectStepConfig() error {
 	if len(pC.Command) == 0 {
 		return errors.New("`command` needs to be present in project step")
@@ -90,9 +104,9 @@ func (pC *ProjectStepConfig) ValidateProjectStepConfig() error {
 	return nil
 }
 
-func NewProjectConfig(projectConfigFilepath string) (*ProjectConfig, error) {
+func NewProjectConfig(projectConfigFilepath string) (ProjectConfigInterface, error) {
 	if len(projectConfigFilepath) == 0 {
-		return nil, nil
+		return nil, errors.New("no project config file path provided")
 	}
 
 	projectConfigFilepath, err := filepath.Abs(projectConfigFilepath)
