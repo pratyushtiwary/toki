@@ -1,0 +1,5 @@
+- use: test
+  command: echo 1
+  auth:
+    - name: test
+    strategy: inherit

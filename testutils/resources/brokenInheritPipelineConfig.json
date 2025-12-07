@@ -4,7 +4,7 @@
     "command": "echo 1",
     "auth": [
       {
-        "name": "test",
+        "name": "test"
         "strategy": "inherit"
       }
     ]
