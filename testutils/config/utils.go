@@ -9,7 +9,7 @@ import (
 )
 
 func ParseTestConfig(configFile string) []*config.PipelineStepConfig {
-	pipelineConfig, err := config.NewPipelineConfig(test_path_utils.GetTestFilePath(configFile), nil)
+	pipelineConfig, err := config.NewPipelineConfig(test_path_utils.GetTestFilePath(configFile), nil, nil)
 
 	if err != nil {
 		panic(err)
@@ -25,7 +25,7 @@ func ParseTestConfigWithProjectConfig(configFile string, projectConfigFile strin
 		panic(err)
 	}
 
-	pipelineConfig, err := config.NewPipelineConfig(test_path_utils.GetTestFilePath(configFile), projectConfig)
+	pipelineConfig, err := config.NewPipelineConfig(test_path_utils.GetTestFilePath(configFile), projectConfig, nil)
 
 	if err != nil {
 		panic(err)

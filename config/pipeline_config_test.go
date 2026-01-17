@@ -15,34 +15,34 @@ func TestNewPipelineConfigHappyPath(t *testing.T) {
 	assert.Nil(t, err)
 
 	// without project config - json
-	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.json"), nil)
+	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.json"), nil, nil)
 
 	assert.Nil(t, err)
 	assert.Len(t, pipelineConfig, 1)
 	assert.Nil(t, pipelineConfig[0].projectStepConfig)
 
 	// with project config - json
-	pipelineConfig, err = NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.json"), projectConfig)
+	pipelineConfig, err = NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.json"), projectConfig, nil)
 	assert.Nil(t, err)
 	assert.Len(t, pipelineConfig, 1)
 	assert.NotNil(t, pipelineConfig[0].projectStepConfig)
 
 	// without project config - yaml
-	pipelineConfig, err = NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.yml"), nil)
+	pipelineConfig, err = NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.yml"), nil, nil)
 
 	assert.Nil(t, err)
 	assert.Len(t, pipelineConfig, 1)
 	assert.Nil(t, pipelineConfig[0].projectStepConfig)
 
 	// with project config - yaml
-	pipelineConfig, err = NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.yml"), projectConfig)
+	pipelineConfig, err = NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.yml"), projectConfig, nil)
 	assert.Nil(t, err)
 	assert.Len(t, pipelineConfig, 1)
 	assert.NotNil(t, pipelineConfig[0].projectStepConfig)
 }
 
 func TestNewPipelineConfigInvalidFilepath(t *testing.T) {
-	pipelineConfig, err := NewPipelineConfig("test.xyz", nil)
+	pipelineConfig, err := NewPipelineConfig("test.xyz", nil, nil)
 
 	assert.NotNil(t, err)
 	assert.True(t, errors.Is(err, os.ErrNotExist))
@@ -50,14 +50,14 @@ func TestNewPipelineConfigInvalidFilepath(t *testing.T) {
 }
 
 func TestNewPipelineConfigInvalidYaml(t *testing.T) {
-	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("brokenInheritPipelineConfig.yml"), nil)
+	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("brokenInheritPipelineConfig.yml"), nil, nil)
 
 	assert.NotNil(t, err)
 	assert.Nil(t, pipelineConfig)
 }
 
 func TestNewPipelineConfigInvalidJson(t *testing.T) {
-	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("brokenInheritPipelineConfig.yml"), nil)
+	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("brokenInheritPipelineConfig.yml"), nil, nil)
 
 	assert.NotNil(t, err)
 	assert.Nil(t, pipelineConfig)
@@ -72,7 +72,7 @@ func TestPipelineStepConfigMergeWithProjectConfig(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.json"), nil)
+	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.json"), nil, nil)
 
 	assert.Nil(t, err)
 	assert.Len(t, pipelineConfig, 1)
@@ -101,7 +101,7 @@ func TestPipelineStepConfigValidatePipelineStepConfig(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.json"), nil)
+	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.json"), nil, nil)
 
 	assert.Nil(t, err)
 	assert.Len(t, pipelineConfig, 1)
@@ -124,7 +124,7 @@ func TestPipelineStepConfigValidatePipelineStepConfig(t *testing.T) {
 }
 
 func TestStepAuthConfigIsEqual(t *testing.T) {
-	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.json"), nil)
+	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.json"), nil, nil)
 
 	assert.Nil(t, err)
 	assert.Len(t, pipelineConfig, 1)
@@ -149,7 +149,7 @@ func TestGetProjectStepConfig(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.json"), projectConfig)
+	pipelineConfig, err := NewPipelineConfig(test_path_utils.GetTestFilePath("inheritPipelineConfig.json"), projectConfig, nil)
 
 	assert.Nil(t, err)
 	assert.Len(t, pipelineConfig, 1)
