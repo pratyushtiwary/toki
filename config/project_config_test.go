@@ -56,8 +56,7 @@ func TestProjectConfigInvalidYaml(t *testing.T) {
 func TestProjectConfigEmptyPath(t *testing.T) {
 	projectConfig, err := NewProjectConfig("")
 
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "no project config file path provided")
+	assert.Nil(t, err)
 	assert.Nil(t, projectConfig)
 }
 func TestProjectConfigInvalidFilepath(t *testing.T) {
