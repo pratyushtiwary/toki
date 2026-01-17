@@ -70,7 +70,7 @@ func NewCustomStrategy(config *config.StepAuthConfig) (*CustomStrategy, *config.
 		expiry:         *config.Params.Expiry,
 		refreshAfter:   *config.Params.RefreshAfter,
 		lastSyncTime:   time.Now(),
-		processGroupId: config.Params.GetParentProcessGroup(),
+		processGroupId: config.Params.CustomStrategyConfig.GetParentProcessGroup(),
 		authCommand:    authCommand,
 	}, config, nil
 }

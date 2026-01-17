@@ -1,8 +1,9 @@
 package config
 
 type AuthParamsConfig struct {
-	StrategyConfig       `yaml:",inline"`
-	CustomStrategyConfig `yaml:",inline"`
+	StrategyConfig           `yaml:",inline"`
+	CustomStrategyConfig     `yaml:",inline"`
+	CurlCookieStrategyConfig `yaml:",inline"`
 }
 
 type StepAuthConfig struct {

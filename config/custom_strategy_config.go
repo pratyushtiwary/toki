@@ -5,7 +5,6 @@ import (
 )
 
 type CustomStrategyConfig struct {
-	StrategyConfig
 	Expiry             *int `json:"expiry,omitempty" yaml:"expiry,omitempty"`
 	RefreshAfter       *int `json:"refresh_after,omitempty" yaml:"refresh_after,omitempty"`
 	parentProcessGroup *uintptr
