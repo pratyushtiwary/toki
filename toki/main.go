@@ -150,7 +150,11 @@ func Run(cmd *cobra.Command, args []string) {
 
 	Check(err, "ProjectConfigParsingError")
 
-	steps, err := config.NewPipelineConfig(pipelineFile, projectConfig)
+	userspaceConfig, err := config.NewUserspaceConfig()
+
+	Check(err, "UserspaceConfigParsingError")
+
+	steps, err := config.NewPipelineConfig(pipelineFile, projectConfig, userspaceConfig)
 
 	Check(err, "PipelineConfigParsingError")
 
