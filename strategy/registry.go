@@ -15,6 +15,14 @@ func NewStrategy(strategyName string, stepConfig *config.StepAuthConfig, process
 			return nil, nil, err
 		}
 		return NewCustomStrategy(stepConfig)
+	case "curl_cookie":
+		err := config.ValidateCurlCookieStrategyConfig(stepConfig)
+
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return NewCurlCookieStrategy(stepConfig)
 	case "inherit":
 		err := config.ValidateInheritStrategyConfig(stepConfig)
 

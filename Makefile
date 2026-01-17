@@ -1,3 +1,5 @@
+.PHONY: build
+
 run-test-pipeline:
 	go run . ./examples/configs/pipeline.test.json -p ./examples/configs/project.test.json
 
@@ -9,3 +11,6 @@ test-verbose:
 
 coverage: test
 	go tool cover -html=coverage.txt
+
+build:
+	go build -o build/toki main.go

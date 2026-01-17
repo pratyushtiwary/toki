@@ -106,7 +106,7 @@ func (pC *ProjectStepConfig) ValidateProjectStepConfig() error {
 
 func NewProjectConfig(projectConfigFilepath string) (ProjectConfigInterface, error) {
 	if len(projectConfigFilepath) == 0 {
-		return nil, errors.New("no project config file path provided")
+		return nil, nil // project config is optional
 	}
 
 	projectConfigFilepath, err := filepath.Abs(projectConfigFilepath)
