@@ -94,7 +94,7 @@ func (pSC *PipelineStepConfig) MergeWithProjectConfig(projectConfig ProjectConfi
 	return nil
 }
 
-func NewPipelineConfig(pipelineConfigFilepath string, projectConfig ProjectConfigInterface) ([]*PipelineStepConfig, error) {
+func NewPipelineConfig(pipelineConfigFilepath string, projectConfig ProjectConfigInterface, userspaceConfig *ProjectConfigInterface) ([]*PipelineStepConfig, error) {
 	pipelineConfigFilepath, err := filepath.Abs(pipelineConfigFilepath)
 
 	if err != nil {
@@ -122,13 +122,29 @@ func NewPipelineConfig(pipelineConfigFilepath string, projectConfig ProjectConfi
 	for stepIdx, step := range steps {
 		err := step.ValidatePipelineStepConfig(projectConfig)
 
-		if err != nil {
+		if err != nil && userspaceConfig == nil {
 			return nil, fmt.Errorf("step %d failed validation, error: %s", stepIdx+1, err.Error())
 		}
 
+		if userspaceConfig != nil {
+			err = step.ValidatePipelineStepConfig(*userspaceConfig)
+
+			if err != nil {
+				return nil, fmt.Errorf("step %d failed validation, error: %s", stepIdx+1, err.Error())
+			}
+		}
+
 		err = step.MergeWithProjectConfig(projectConfig)
-		if err != nil {
+		if err != nil && userspaceConfig == nil {
 			return nil, fmt.Errorf("step %d failed validation, error: %s", stepIdx+1, err.Error())
+		}
+
+		if userspaceConfig != nil {
+			err = step.MergeWithProjectConfig(*userspaceConfig)
+
+			if err != nil {
+				return nil, fmt.Errorf("step %d failed validation, error: %s", stepIdx+1, err.Error())
+			}
 		}
 	}
 
