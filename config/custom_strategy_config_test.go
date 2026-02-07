@@ -3,14 +3,11 @@ package config
 import (
 	"testing"
 
+	test_utils "github.com/pratyushtiwary/toki/testutils"
 	"github.com/stretchr/testify/assert"
 )
 
 func intPtr(n int) *int {
-	return &n
-}
-
-func uintPtr(n uintptr) *uintptr {
 	return &n
 }
 
@@ -114,7 +111,7 @@ func TestCustomStrategyConfigGetParentProcessGroup(t *testing.T) {
 
 	assert.Nil(t, customStrategy.GetParentProcessGroup())
 
-	customStrategy.parentProcessGroup = uintPtr(2)
+	customStrategy.parentProcessGroup = test_utils.UintPtr(2)
 
-	assert.Equal(t, customStrategy.GetParentProcessGroup(), uintPtr(2))
+	assert.Equal(t, customStrategy.GetParentProcessGroup(), test_utils.UintPtr(2))
 }

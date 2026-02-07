@@ -57,7 +57,7 @@ func (cCS *CurlCookieStrategy) calcMinExpiry() error {
 		expiry, err := strconv.ParseInt(expiryStr, 10, 64)
 
 		if err != nil {
-			return nil
+			return err
 		}
 
 		minExpiry = min(minExpiry, expiry)
