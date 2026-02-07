@@ -11,6 +11,7 @@ import (
 	"github.com/pratyushtiwary/toki/process"
 	process_mocks "github.com/pratyushtiwary/toki/process/mocks"
 	test_config_utils "github.com/pratyushtiwary/toki/testutils/config"
+	test_mock_utils "github.com/pratyushtiwary/toki/testutils/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,21 +19,6 @@ func assertCustomStrategyHappyPath(t *testing.T, err error, customStrategy *Cust
 	assert.Nil(t, err)
 	assert.IsType(t, &CustomStrategy{}, customStrategy)
 	assert.Equal(t, authConfig, _config)
-}
-
-func mockNewCommand(authCommand process.ProcessInterface) func() {
-	var originalNewCommand = process.NewCommand
-	process.NewCommand = func(execCommand string, parentProcessGroup *uintptr) (process.ProcessInterface, error) {
-		if authCommand == nil {
-			return nil, errors.New("test error")
-		}
-		return authCommand, nil
-	}
-	var resetNewCommand = func() {
-		process.NewCommand = originalNewCommand
-	}
-
-	return resetNewCommand
 }
 
 func TestCustomStrategyHappyPath(t *testing.T) {
@@ -45,7 +31,8 @@ func TestCustomStrategyHappyPath(t *testing.T) {
 }
 
 func TestCustomStrategyNewCommandFailed(t *testing.T) {
-	defer mockNewCommand(nil)()
+	resetNewCommand := test_mock_utils.MockNewCommand(nil)
+	defer resetNewCommand()
 	customStrategyConfig, _ := test_config_utils.GetFirstStep(t, "customPipelineConfig.json", nil)
 	authConfig := customStrategyConfig.AuthCommands[0]
 
@@ -98,7 +85,8 @@ func TestCustomStrategyRefreshHappyPath(t *testing.T) {
 		mockProc.EXPECT().WaitTillFinished().Return(nil).Times(1),
 	)
 
-	defer mockNewCommand(mockProc)()
+	resetNewCommand := test_mock_utils.MockNewCommand(mockProc)
+	defer resetNewCommand()
 
 	customStrategyConfig, _ := test_config_utils.GetFirstStep(t, "customPipelineConfig.json", nil)
 	authConfig := customStrategyConfig.AuthCommands[0]
@@ -118,7 +106,8 @@ func TestCustomStrategyRefreshNotExpired(t *testing.T) {
 
 	mockProc := process_mocks.NewMockProcessInterface(ctrl)
 
-	defer mockNewCommand(mockProc)()
+	resetNewCommand := test_mock_utils.MockNewCommand(mockProc)
+	defer resetNewCommand()
 
 	customStrategyConfig, _ := test_config_utils.GetFirstStep(t, "customPipelineConfig.json", nil)
 	authConfig := customStrategyConfig.AuthCommands[0]
@@ -139,7 +128,8 @@ func TestCustomStrategyRefreshForce(t *testing.T) {
 		mockProc.EXPECT().WaitTillFinished().Return(nil).Times(1),
 	)
 
-	defer mockNewCommand(mockProc)()
+	resetNewCommand := test_mock_utils.MockNewCommand(mockProc)
+	defer resetNewCommand()
 
 	customStrategyConfig, _ := test_config_utils.GetFirstStep(t, "customPipelineConfig.json", nil)
 	authConfig := customStrategyConfig.AuthCommands[0]
@@ -160,7 +150,8 @@ func TestCustomStrategyRefreshRunReturnsError(t *testing.T) {
 	mockProc := process_mocks.NewMockProcessInterface(ctrl)
 	mockProc.EXPECT().Run(gomock.Nil(), gomock.Any()).Return(expectedError).Times(1)
 
-	defer mockNewCommand(mockProc)()
+	resetNewCommand := test_mock_utils.MockNewCommand(mockProc)
+	defer resetNewCommand()
 
 	customStrategyConfig, _ := test_config_utils.GetFirstStep(t, "customPipelineConfig.json", nil)
 	authConfig := customStrategyConfig.AuthCommands[0]
@@ -189,7 +180,8 @@ func TestCustomStrategyRefreshWaitTillFinishedReturnsError(t *testing.T) {
 		mockProc.EXPECT().GetStderrBuffer().Return(mockedStdErrBuffer).Times(1),
 	)
 
-	defer mockNewCommand(mockProc)()
+	resetNewCommand := test_mock_utils.MockNewCommand(mockProc)
+	defer resetNewCommand()
 
 	customStrategyConfig, _ := test_config_utils.GetFirstStep(t, "customPipelineConfig.json", nil)
 	authConfig := customStrategyConfig.AuthCommands[0]
@@ -213,7 +205,8 @@ func TestCustomStrategyCleanupHappyPath(t *testing.T) {
 		mockProc.EXPECT().Cleanup().Return(nil).Times(1),
 	)
 
-	defer mockNewCommand(mockProc)()
+	resetNewCommand := test_mock_utils.MockNewCommand(mockProc)
+	defer resetNewCommand()
 
 	customStrategyConfig, _ := test_config_utils.GetFirstStep(t, "customPipelineConfig.json", nil)
 	authConfig := customStrategyConfig.AuthCommands[0]
@@ -236,7 +229,8 @@ func TestCustomStrategyCleanupError(t *testing.T) {
 		mockProc.EXPECT().Cleanup().Return(expectedError).Times(1),
 	)
 
-	defer mockNewCommand(mockProc)()
+	resetNewCommand := test_mock_utils.MockNewCommand(mockProc)
+	defer resetNewCommand()
 
 	customStrategyConfig, _ := test_config_utils.GetFirstStep(t, "customPipelineConfig.json", nil)
 	authConfig := customStrategyConfig.AuthCommands[0]

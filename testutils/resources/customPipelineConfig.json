@@ -9,6 +9,12 @@
           "refresh_after": 1,
           "command": "echo 1"
         }
+      },
+      {
+        "strategy": "custom",
+        "params": {
+          "curl_cookie_file": "<inject at test time>"
+        }
       }
     ]
   }

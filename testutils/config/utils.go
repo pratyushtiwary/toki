@@ -34,7 +34,7 @@ func ParseTestConfigWithProjectConfig(configFile string, projectConfigFile strin
 	return pipelineConfig, projectConfig
 }
 
-func GetFirstStep(t *testing.T, pipelineConfigPath string, projectConfigPath *string) (*config.PipelineStepConfig, config.ProjectConfigInterface) {
+func GetNStep(t *testing.T, pipelineConfigPath string, projectConfigPath *string, n int) (*config.PipelineStepConfig, config.ProjectConfigInterface) {
 	var pipelineConfig []*config.PipelineStepConfig
 	var projectConfig config.ProjectConfigInterface
 	if projectConfigPath != nil {
@@ -46,7 +46,11 @@ func GetFirstStep(t *testing.T, pipelineConfigPath string, projectConfigPath *st
 		assert.NotNil(t, pipelineConfig)
 	}
 
-	pipelineStep := pipelineConfig[0]
+	pipelineStep := pipelineConfig[n]
 
 	return pipelineStep, projectConfig
+}
+
+func GetFirstStep(t *testing.T, pipelineConfigPath string, projectConfigPath *string) (*config.PipelineStepConfig, config.ProjectConfigInterface) {
+	return GetNStep(t, pipelineConfigPath, projectConfigPath, 0)
 }
